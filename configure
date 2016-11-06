@@ -1,5 +1,28 @@
 #!/bin/sh
 
+findtool() # {{{
+{
+  local val= varval= var="$1"; shift
+  eval "varval=\"\$$var\""
+  if test -n "$varval"; then
+    val=$(which $varval 2>/dev/null || :)
+  fi
+  while test -z "$val" && test "${1+set}" = set; do
+    test -z "$1" ||
+      val=$(which "$1" 2>/dev/null || :)
+    shift
+  done
+  test -n "$val" || {
+    echo >&2 "not found: $var"
+    exit 1
+  }
+  test -x "$val" || {
+    echo >&2 "not executable: $var ($val)"
+    exit 1
+  }
+  eval "$var=\"\$val\""
+} # }}}
+
 populate() # {{{
 {
   sed \
@@ -9,6 +32,9 @@ populate() # {{{
     -e "s@datarootdir@$datarootdirg" \
     -e "s@mandir@$mandirg" \
     -e "s@sysconfdir@$sysconfdirg" \
+    -e "s@CRAM@$CRAMg" \
+    -e "s@CRAMFLAGS@$CRAMFLAGSg" \
+    -e "s@ZSH@$ZSHg" \
     $1 \
   > $2
 } # }}}
@@ -21,6 +47,10 @@ datarootdir='${prefix}/share'
 mandir='${datarootdir}/man'
 sysconfdir='${prefix}/etc'
 
+CRAM=
+CRAMFLAGS=
+ZSH=
+
 for a in "$@"; do
   case $a in
   --bindir=*)       bindir="${a#*=}"      ;;
@@ -31,11 +61,19 @@ for a in "$@"; do
     sysconfdir="${a#*=}"
     sysconfdir_set=1
   ;;
+  CRAM=*)           CRAM="${a#*=}"        ;;
+  CRAMFLAGS=*)      CRAMFLAGS="${a#*=}"   ;;
+
+  ZSH=*)            ZSH="${a#*=}"         ;;
   esac
 done
 
 if test "$prefix" = /usr && test ${sysconfdir_set-0} = 0; then
   sysconfdir=/etc
 fi
+
+findtool CRAM cram
+findtool XMLSTARLET xml
+findtool ZSH zsh
 
 populate $rootdir/GNUmakefile.in GNUmakefile

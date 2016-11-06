@@ -6,8 +6,10 @@ man1dir         = $(mandir)/man1
 sysconfdir      = @sysconfdir@
 etcdir          = $(sysconfdir)
 
-CRAM            = cram
-CRAMFLAGS       =
+CRAM            = @CRAM@
+CRAMFLAGS       = @CRAMFLAGS@
+
+ZSH             = @ZSH@
 
 INSTALL         = install
 
@@ -36,7 +38,10 @@ $(commands): %: $(srcdir)/%.zsh
 	$(call subst_vars)
 
 define subst_vars
-	sed -e 's![@]sysconfdir[@]!$(sysconfdir)!g' < $< > $@
+	sed \
+	  -e 's![@]sysconfdir[@]!$(sysconfdir)!g' \
+	  -e 's![@]ZSH[@]!$(ZSH)!g' \
+	  < $< > $@
 	chmod 0755 $@
 endef
 
