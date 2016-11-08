@@ -1,7 +1,7 @@
 prefix          = @prefix@
 bindir          = @bindir@
 datarootdir     = @datarootdir@
-mandir          = $(datarootdir)/man
+mandir          = @mandir@
 man1dir         = $(mandir)/man1
 sysconfdir      = @sysconfdir@
 etcdir          = $(sysconfdir)
